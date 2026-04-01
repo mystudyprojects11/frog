@@ -20,7 +20,7 @@ export default function ListingCreate() {
         city: values.city || undefined,
         species_id: values.species_id || null,
       })
-      navigate(`/listings/${listing.id}`)
+      navigate(`/listings/${listing.id}/edit`)
     } catch (err: any) {
       setError(err?.response?.data?.detail ?? 'Ошибка при создании')
     } finally {

@@ -4,6 +4,7 @@ export interface Species {
   id: string
   name: string
   latin_name: string
+  description: string | null
   difficulty: string
   photo_url: string | null
 }
@@ -87,4 +88,7 @@ export const listingsApi = {
 
   deletePhoto: (listingId: string, photoId: string) =>
     client.delete(`/listings/${listingId}/photos/${photoId}`),
+
+  setMainPhoto: (listingId: string, photoId: string) =>
+    client.patch<Listing>(`/listings/${listingId}/photos/${photoId}/set-main`).then((r) => r.data),
 }

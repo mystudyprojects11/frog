@@ -164,6 +164,32 @@ async def upload_photo(
     return result.scalar_one()
 
 
+@router.patch("/{listing_id}/photos/{photo_id}/set-main", response_model=ListingRead)
+async def set_main_photo(
+    listing_id: uuid.UUID,
+    photo_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    result = await db.execute(
+        select(Listing).options(*_load_full).where(Listing.id == listing_id)
+    )
+    listing = result.scalar_one_or_none()
+    if not listing:
+        raise HTTPException(status_code=404, detail="Listing not found")
+    if listing.seller_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Forbidden")
+    if not any(p.id == photo_id for p in listing.photos):
+        raise HTTPException(status_code=404, detail="Photo not found")
+
+    for p in listing.photos:
+        p.is_main = p.id == photo_id
+    await db.commit()
+
+    result = await db.execute(select(Listing).options(*_load_full).where(Listing.id == listing_id))
+    return result.scalar_one()
+
+
 @router.delete("/{listing_id}/photos/{photo_id}", status_code=204)
 async def delete_photo(
     listing_id: uuid.UUID,

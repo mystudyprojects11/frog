@@ -7,6 +7,8 @@ import Listings from './pages/Listings'
 import ListingDetail from './pages/ListingDetail'
 import ListingCreate from './pages/ListingCreate'
 import ListingEdit from './pages/ListingEdit'
+import SpeciesList from './pages/Species'
+import SpeciesDetail from './pages/SpeciesDetail'
 
 function Header() {
   const { user, logout } = useAuthStore()
@@ -25,7 +27,7 @@ function Header() {
       </Link>
       <nav className="flex items-center gap-4 text-sm text-gray-600">
         <Link to="/listings" className="hover:text-frog-600 transition-colors">Объявления</Link>
-        <Link to="/" className="hover:text-frog-600 transition-colors">Виды</Link>
+        <Link to="/species" className="hover:text-frog-600 transition-colors">Виды</Link>
         {user ? (
           <>
             <span className="text-frog-700 font-medium">{user.username}</span>
@@ -109,6 +111,8 @@ export default function App() {
           <Route path="/listings/new" element={<ListingCreate />} />
           <Route path="/listings/:id" element={<ListingDetail />} />
           <Route path="/listings/:id/edit" element={<ListingEdit />} />
+          <Route path="/species" element={<SpeciesList />} />
+          <Route path="/species/:id" element={<SpeciesDetail />} />
         </Routes>
         <footer className="text-center text-sm text-gray-400 py-6">
           Жабка © 2026

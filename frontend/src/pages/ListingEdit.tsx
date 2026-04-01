@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { listingsApi, type Listing } from '../api/listings'
+import { listingsApi, type Listing, type ListingPhoto } from '../api/listings'
 import ListingForm, { type ListingFormValues } from '../components/ListingForm/ListingForm'
+import PhotoManager from '../components/PhotoManager/PhotoManager'
 import { useAuthStore } from '../store/auth'
 
 const STATUS_LABELS: Record<string, string> = {
@@ -16,6 +17,7 @@ export default function ListingEdit() {
   const user = useAuthStore((s) => s.user)
 
   const [listing, setListing] = useState<Listing | null>(null)
+  const [photos, setPhotos] = useState<ListingPhoto[]>([])
   const [status, setStatus] = useState('active')
   const [loading, setLoading] = useState(false)
   const [fetchError, setFetchError] = useState<string | null>(null)
@@ -26,6 +28,7 @@ export default function ListingEdit() {
     listingsApi.get(id)
       .then((l) => {
         setListing(l)
+        setPhotos(l.photos)
         setStatus(l.status)
       })
       .catch(() => setFetchError('Объявление не найдено'))
@@ -72,6 +75,14 @@ export default function ListingEdit() {
     <div className="max-w-xl mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold text-frog-700 mb-6">Редактировать объявление</h1>
       <div className="bg-white rounded-2xl border border-frog-100 shadow-sm p-6 flex flex-col gap-6">
+
+        <PhotoManager
+          listingId={listing.id}
+          photos={photos}
+          onChange={setPhotos}
+        />
+
+        <hr className="border-frog-100" />
 
         {/* Status */}
         <div className="flex flex-col gap-1">
