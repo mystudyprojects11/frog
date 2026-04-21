@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { listingsApi, type Listing } from '../api/listings'
 import { useAuthStore } from '../store/auth'
+import { useFavoritesStore } from '../store/favorites'
 
 const DEAL_TYPE_LABELS: Record<string, string> = {
   sale: 'Продажа',
@@ -19,6 +20,8 @@ export default function ListingDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
+  const isFavorite = useFavoritesStore((s) => (id ? s.ids.has(id) : false))
+  const toggleFavorite = useFavoritesStore((s) => s.toggle)
 
   const [listing, setListing] = useState<Listing | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -88,14 +91,31 @@ export default function ListingDetail() {
         <div className="flex flex-col gap-4">
           <div className="flex items-start justify-between gap-2">
             <h1 className="text-2xl font-bold text-gray-900">{listing.title}</h1>
-            {isOwner && (
-              <Link
-                to={`/listings/${listing.id}/edit`}
-                className="text-sm text-frog-600 hover:underline whitespace-nowrap"
-              >
-                Редактировать
-              </Link>
-            )}
+            <div className="flex items-center gap-3 whitespace-nowrap">
+              {!isOwner && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!user) return navigate('/login')
+                    toggleFavorite(listing.id)
+                  }}
+                  title={isFavorite ? 'Убрать из избранного' : 'В избранное'}
+                  className="text-2xl leading-none"
+                >
+                  <span className={isFavorite ? 'text-red-500' : 'text-gray-300 hover:text-red-400'}>
+                    {isFavorite ? '♥' : '♡'}
+                  </span>
+                </button>
+              )}
+              {isOwner && (
+                <Link
+                  to={`/listings/${listing.id}/edit`}
+                  className="text-sm text-frog-600 hover:underline"
+                >
+                  Редактировать
+                </Link>
+              )}
+            </div>
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">

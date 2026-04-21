@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { authApi, type UserRead } from '../api/auth'
+import { authApi, type ProfileUpdate, type UserRead } from '../api/auth'
 
 interface AuthState {
   user: UserRead | null
@@ -7,6 +7,7 @@ interface AuthState {
   login: (email: string, password: string) => Promise<void>
   logout: () => void
   fetchMe: () => Promise<void>
+  updateProfile: (data: ProfileUpdate) => Promise<void>
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -37,5 +38,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     } finally {
       set({ loading: false })
     }
+  },
+
+  updateProfile: async (data) => {
+    const user = await authApi.updateMe(data)
+    set({ user })
   },
 }))

@@ -2,11 +2,15 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.database import get_db
+from app.models.listing import Listing
 from app.models.user import User
-from app.schemas.user import Token, UserCreate, UserRead
+from app.schemas.listing import ListingShort
+from app.schemas.user import PasswordChange, Token, UserCreate, UserRead
 from app.utils.auth import create_access_token, get_current_user, hash_password, verify_password
+from app.utils.s3 import public_url
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -59,3 +63,45 @@ async def update_me(
     await db.commit()
     await db.refresh(current_user)
     return current_user
+
+
+@router.post("/change-password", status_code=204)
+async def change_password(
+    data: PasswordChange,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if not verify_password(data.old_password, current_user.password_hash):
+        raise HTTPException(status_code=400, detail="Неверный текущий пароль")
+    current_user.password_hash = hash_password(data.new_password)
+    await db.commit()
+
+
+@router.get("/me/listings", response_model=list[ListingShort])
+async def my_listings(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    result = await db.execute(
+        select(Listing)
+        .options(selectinload(Listing.species), selectinload(Listing.photos))
+        .where(Listing.seller_id == current_user.id)
+        .order_by(Listing.created_at.desc())
+    )
+    listings = result.scalars().all()
+    items = []
+    for listing in listings:
+        main_photo = next((p for p in listing.photos if p.is_main), None) or (
+            listing.photos[0] if listing.photos else None
+        )
+        items.append(
+            ListingShort(
+                **{
+                    k: getattr(listing, k)
+                    for k in ("id", "title", "price", "deal_type", "status", "city", "created_at", "seller_id")
+                },
+                species=listing.species,
+                main_photo=public_url(main_photo.s3_key) if main_photo else None,
+            )
+        )
+    return items

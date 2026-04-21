@@ -1,4 +1,5 @@
 import client from './client'
+import type { ListingShort } from './listings'
 
 export interface UserRead {
   id: string
@@ -20,6 +21,12 @@ export interface RegisterData {
   city?: string
 }
 
+export interface ProfileUpdate {
+  username?: string
+  phone?: string | null
+  city?: string | null
+}
+
 export const authApi = {
   register: (data: RegisterData) =>
     client.post<UserRead>('/auth/register', data).then((r) => r.data),
@@ -34,4 +41,16 @@ export const authApi = {
   },
 
   me: () => client.get<UserRead>('/auth/me').then((r) => r.data),
+
+  updateMe: (data: ProfileUpdate) =>
+    client.patch<UserRead>('/auth/me', data).then((r) => r.data),
+
+  myListings: () =>
+    client.get<ListingShort[]>('/auth/me/listings').then((r) => r.data),
+
+  changePassword: (oldPassword: string, newPassword: string) =>
+    client.post('/auth/change-password', {
+      old_password: oldPassword,
+      new_password: newPassword,
+    }),
 }

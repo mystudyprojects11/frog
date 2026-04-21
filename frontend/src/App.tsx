@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from './store/auth'
+import { useFavoritesStore } from './store/favorites'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Listings from './pages/Listings'
@@ -9,6 +10,8 @@ import ListingCreate from './pages/ListingCreate'
 import ListingEdit from './pages/ListingEdit'
 import SpeciesList from './pages/Species'
 import SpeciesDetail from './pages/SpeciesDetail'
+import Favorites from './pages/Favorites'
+import Profile from './pages/Profile'
 
 function Header() {
   const { user, logout } = useAuthStore()
@@ -28,9 +31,14 @@ function Header() {
       <nav className="flex items-center gap-4 text-sm text-gray-600">
         <Link to="/listings" className="hover:text-frog-600 transition-colors">Объявления</Link>
         <Link to="/species" className="hover:text-frog-600 transition-colors">Виды</Link>
+        {user && (
+          <Link to="/favorites" className="hover:text-frog-600 transition-colors">Избранное</Link>
+        )}
         {user ? (
           <>
-            <span className="text-frog-700 font-medium">{user.username}</span>
+            <Link to="/profile" className="text-frog-700 font-medium hover:text-frog-800 transition-colors">
+              {user.username}
+            </Link>
             <button onClick={handleLogout} className="hover:text-red-500 transition-colors">
               Выйти
             </button>
@@ -94,10 +102,18 @@ function Home() {
 
 export default function App() {
   const fetchMe = useAuthStore((s) => s.fetchMe)
+  const user = useAuthStore((s) => s.user)
+  const fetchFavorites = useFavoritesStore((s) => s.fetch)
+  const clearFavorites = useFavoritesStore((s) => s.clear)
 
   useEffect(() => {
     fetchMe()
   }, [fetchMe])
+
+  useEffect(() => {
+    if (user) fetchFavorites()
+    else clearFavorites()
+  }, [user, fetchFavorites, clearFavorites])
 
   return (
     <BrowserRouter>
@@ -113,6 +129,8 @@ export default function App() {
           <Route path="/listings/:id/edit" element={<ListingEdit />} />
           <Route path="/species" element={<SpeciesList />} />
           <Route path="/species/:id" element={<SpeciesDetail />} />
+          <Route path="/favorites" element={<Favorites />} />
+          <Route path="/profile" element={<Profile />} />
         </Routes>
         <footer className="text-center text-sm text-gray-400 py-6">
           Жабка © 2026

@@ -5,6 +5,23 @@ from datetime import datetime
 from pydantic import BaseModel, EmailStr, field_validator
 
 
+def _validate_password(v: str) -> str:
+    errors = []
+    if len(v) < 8:
+        errors.append("не менее 8 символов")
+    if not re.search(r"[A-Z]", v):
+        errors.append("минимум одна заглавная буква")
+    if not re.match(r"^[A-Za-z\d!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>/?`~]+$", v):
+        errors.append("только латинские буквы, цифры и спецсимволы")
+    if not re.search(r"\d", v):
+        errors.append("минимум одна цифра")
+    if not re.search(r"[!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>/?`~]", v):
+        errors.append("минимум один спецсимвол")
+    if errors:
+        raise ValueError("Пароль должен содержать: " + ", ".join(errors))
+    return v
+
+
 class UserCreate(BaseModel):
     email: EmailStr
     username: str
@@ -25,20 +42,17 @@ class UserCreate(BaseModel):
     @field_validator("password")
     @classmethod
     def validate_password(cls, v: str) -> str:
-        errors = []
-        if len(v) < 8:
-            errors.append("не менее 8 символов")
-        if not re.search(r"[A-Z]", v):
-            errors.append("минимум одна заглавная буква")
-        if not re.match(r"^[A-Za-z\d!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>/?`~]+$", v):
-            errors.append("только латинские буквы, цифры и спецсимволы")
-        if not re.search(r"\d", v):
-            errors.append("минимум одна цифра")
-        if not re.search(r"[!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>/?`~]", v):
-            errors.append("минимум один спецсимвол")
-        if errors:
-            raise ValueError("Пароль должен содержать: " + ", ".join(errors))
-        return v
+        return _validate_password(v)
+
+
+class PasswordChange(BaseModel):
+    old_password: str
+    new_password: str
+
+    @field_validator("new_password")
+    @classmethod
+    def validate_new_password(cls, v: str) -> str:
+        return _validate_password(v)
 
 
 class UserRead(BaseModel):
