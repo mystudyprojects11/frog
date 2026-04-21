@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { authApi } from '../api/auth'
 import type { ListingShort } from '../api/listings'
@@ -8,6 +8,11 @@ import ListingCard from '../components/ListingCard'
 export default function Profile() {
   const user = useAuthStore((s) => s.user)
   const updateProfile = useAuthStore((s) => s.updateProfile)
+  const uploadAvatar = useAuthStore((s) => s.uploadAvatar)
+  const deleteAvatar = useAuthStore((s) => s.deleteAvatar)
+
+  const avatarInputRef = useRef<HTMLInputElement>(null)
+  const [avatarLoading, setAvatarLoading] = useState(false)
 
   const [listings, setListings] = useState<ListingShort[]>([])
   const [loadingListings, setLoadingListings] = useState(true)
@@ -95,6 +100,27 @@ export default function Profile() {
     }
   }
 
+  const handleAvatarUpload = async (files: FileList | null) => {
+    if (!files || !files[0]) return
+    setAvatarLoading(true)
+    try {
+      await uploadAvatar(files[0])
+    } finally {
+      setAvatarLoading(false)
+      if (avatarInputRef.current) avatarInputRef.current.value = ''
+    }
+  }
+
+  const handleAvatarDelete = async () => {
+    if (!confirm('Удалить аватар?')) return
+    setAvatarLoading(true)
+    try {
+      await deleteAvatar()
+    } finally {
+      setAvatarLoading(false)
+    }
+  }
+
   const memberSince = new Date(user.created_at).toLocaleDateString('ru-RU', {
     month: 'long',
     year: 'numeric',
@@ -158,10 +184,38 @@ export default function Profile() {
           </form>
         ) : (
           <div className="flex items-start gap-4">
-            <div className="w-20 h-20 rounded-full bg-frog-100 flex items-center justify-center text-4xl flex-shrink-0">
-              {user.avatar_url
-                ? <img src={user.avatar_url} className="w-full h-full rounded-full object-cover" alt="" />
-                : '🐸'}
+            <div className="relative group w-20 h-20 flex-shrink-0">
+              <div className="w-20 h-20 rounded-full bg-frog-100 flex items-center justify-center text-4xl overflow-hidden">
+                {user.avatar_url
+                  ? <img src={user.avatar_url} className="w-full h-full object-cover" alt="" />
+                  : '🐸'}
+              </div>
+              <button
+                type="button"
+                onClick={() => avatarInputRef.current?.click()}
+                disabled={avatarLoading}
+                title="Загрузить фото"
+                className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-medium"
+              >
+                {avatarLoading ? '...' : 'Изменить'}
+              </button>
+              {user.avatar_url && !avatarLoading && (
+                <button
+                  type="button"
+                  onClick={handleAvatarDelete}
+                  title="Удалить"
+                  className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center leading-none"
+                >
+                  ×
+                </button>
+              )}
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => handleAvatarUpload(e.target.files)}
+              />
             </div>
             <div className="flex-1 flex flex-col gap-1 min-w-0">
               <div className="flex items-start justify-between gap-2">

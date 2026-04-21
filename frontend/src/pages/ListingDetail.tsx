@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { listingsApi, type Listing } from '../api/listings'
+import { chatsApi } from '../api/chats'
 import { useAuthStore } from '../store/auth'
 import { useFavoritesStore } from '../store/favorites'
 
@@ -174,7 +175,14 @@ export default function ListingDetail() {
 
           {!isOwner && user && (
             <button
-              onClick={() => navigate(`/chats?listing=${listing.id}`)}
+              onClick={async () => {
+                try {
+                  const chat = await chatsApi.createOrGet(listing.id)
+                  navigate(`/chats/${chat.id}`)
+                } catch {
+                  navigate('/chats')
+                }
+              }}
               className="bg-frog-600 hover:bg-frog-700 text-white font-medium py-3 rounded-xl transition-colors"
             >
               Написать продавцу

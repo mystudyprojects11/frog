@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from './store/auth'
 import { useFavoritesStore } from './store/favorites'
+import { useChatsNotifStore } from './store/chatsNotif'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Listings from './pages/Listings'
@@ -12,10 +13,12 @@ import SpeciesList from './pages/Species'
 import SpeciesDetail from './pages/SpeciesDetail'
 import Favorites from './pages/Favorites'
 import Profile from './pages/Profile'
+import Chats from './pages/Chats'
 
 function Header() {
   const { user, logout } = useAuthStore()
   const navigate = useNavigate()
+  const unread = useChatsNotifStore((s) => s.unread)
 
   const handleLogout = () => {
     logout()
@@ -32,7 +35,17 @@ function Header() {
         <Link to="/listings" className="hover:text-frog-600 transition-colors">Объявления</Link>
         <Link to="/species" className="hover:text-frog-600 transition-colors">Виды</Link>
         {user && (
-          <Link to="/favorites" className="hover:text-frog-600 transition-colors">Избранное</Link>
+          <>
+            <Link to="/chats" className="hover:text-frog-600 transition-colors relative inline-flex items-center gap-1">
+              Чаты
+              {unread > 0 && (
+                <span className="bg-red-500 text-white text-[10px] font-bold leading-none rounded-full min-w-[18px] h-[18px] px-1.5 flex items-center justify-center">
+                  {unread > 99 ? '99+' : unread}
+                </span>
+              )}
+            </Link>
+            <Link to="/favorites" className="hover:text-frog-600 transition-colors">Избранное</Link>
+          </>
         )}
         {user ? (
           <>
@@ -115,6 +128,19 @@ export default function App() {
     else clearFavorites()
   }, [user, fetchFavorites, clearFavorites])
 
+  const refreshNotif = useChatsNotifStore((s) => s.refresh)
+  const resetNotif = useChatsNotifStore((s) => s.reset)
+
+  useEffect(() => {
+    if (!user) {
+      resetNotif()
+      return
+    }
+    refreshNotif()
+    const t = setInterval(refreshNotif, 30000)
+    return () => clearInterval(t)
+  }, [user, refreshNotif, resetNotif])
+
   return (
     <BrowserRouter>
       <div className="min-h-screen flex flex-col">
@@ -131,6 +157,8 @@ export default function App() {
           <Route path="/species/:id" element={<SpeciesDetail />} />
           <Route path="/favorites" element={<Favorites />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/chats" element={<Chats />} />
+          <Route path="/chats/:id" element={<Chats />} />
         </Routes>
         <footer className="text-center text-sm text-gray-400 py-6">
           Жабка © 2026

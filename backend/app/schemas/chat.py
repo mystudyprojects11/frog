@@ -14,15 +14,28 @@ class MessageRead(BaseModel):
     model_config = {"from_attributes": True}
 
 
-class ChatRead(BaseModel):
+class ChatParticipant(BaseModel):
     id: uuid.UUID
-    listing_id: uuid.UUID
-    buyer_id: uuid.UUID
-    seller_id: uuid.UUID
-    created_at: datetime
-    last_message: MessageRead | None = None
+    username: str
+    avatar_url: str | None
 
     model_config = {"from_attributes": True}
+
+
+class ChatListingInfo(BaseModel):
+    id: uuid.UUID
+    title: str
+    main_photo: str | None = None
+
+
+class ChatRead(BaseModel):
+    id: uuid.UUID
+    listing: ChatListingInfo
+    buyer: ChatParticipant
+    seller: ChatParticipant
+    created_at: datetime
+    last_message: MessageRead | None = None
+    unread_count: int = 0
 
 
 class WSMessage(BaseModel):

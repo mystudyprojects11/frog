@@ -58,3 +58,8 @@ def delete_file(key: str) -> None:
 
 def public_url(key: str) -> str:
     return f"{settings.MINIO_PUBLIC_URL}/{settings.MINIO_BUCKET}/{key}"
+
+
+def key_from_url(url: str) -> str | None:
+    prefix = f"{settings.MINIO_PUBLIC_URL}/{settings.MINIO_BUCKET}/"
+    return url[len(prefix):] if url.startswith(prefix) else None

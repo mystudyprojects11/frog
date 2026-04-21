@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,7 +10,7 @@ from app.models.user import User
 from app.schemas.listing import ListingShort
 from app.schemas.user import PasswordChange, Token, UserCreate, UserRead
 from app.utils.auth import create_access_token, get_current_user, hash_password, verify_password
-from app.utils.s3 import public_url
+from app.utils.s3 import delete_file, key_from_url, public_url, upload_file
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -62,6 +62,45 @@ async def update_me(
             setattr(current_user, field, value)
     await db.commit()
     await db.refresh(current_user)
+    return current_user
+
+
+@router.post("/me/avatar", response_model=UserRead)
+async def upload_avatar(
+    file: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.avatar_url:
+        old_key = key_from_url(current_user.avatar_url)
+        if old_key:
+            try:
+                delete_file(old_key)
+            except Exception:
+                pass
+
+    key = upload_file(await file.read(), file.content_type or "image/jpeg", folder="avatars")
+    current_user.avatar_url = public_url(key)
+    await db.commit()
+    await db.refresh(current_user)
+    return current_user
+
+
+@router.delete("/me/avatar", response_model=UserRead)
+async def delete_avatar(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.avatar_url:
+        old_key = key_from_url(current_user.avatar_url)
+        if old_key:
+            try:
+                delete_file(old_key)
+            except Exception:
+                pass
+        current_user.avatar_url = None
+        await db.commit()
+        await db.refresh(current_user)
     return current_user
 
 

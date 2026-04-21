@@ -16,6 +16,8 @@ class Chat(Base):
     buyer_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
     seller_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    buyer_last_read_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    seller_last_read_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
     listing: Mapped["Listing"] = relationship(back_populates="chats")
     buyer: Mapped["User"] = relationship(foreign_keys=[buyer_id])

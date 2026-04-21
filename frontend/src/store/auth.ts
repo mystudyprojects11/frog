@@ -8,6 +8,8 @@ interface AuthState {
   logout: () => void
   fetchMe: () => Promise<void>
   updateProfile: (data: ProfileUpdate) => Promise<void>
+  uploadAvatar: (file: File) => Promise<void>
+  deleteAvatar: () => Promise<void>
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -42,6 +44,16 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   updateProfile: async (data) => {
     const user = await authApi.updateMe(data)
+    set({ user })
+  },
+
+  uploadAvatar: async (file) => {
+    const user = await authApi.uploadAvatar(file)
+    set({ user })
+  },
+
+  deleteAvatar: async () => {
+    const user = await authApi.deleteAvatar()
     set({ user })
   },
 }))

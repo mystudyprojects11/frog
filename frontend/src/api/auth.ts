@@ -53,4 +53,17 @@ export const authApi = {
       old_password: oldPassword,
       new_password: newPassword,
     }),
+
+  uploadAvatar: (file: File) => {
+    const form = new FormData()
+    form.append('file', file)
+    return client
+      .post<UserRead>('/auth/me/avatar', form, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      .then((r) => r.data)
+  },
+
+  deleteAvatar: () =>
+    client.delete<UserRead>('/auth/me/avatar').then((r) => r.data),
 }
