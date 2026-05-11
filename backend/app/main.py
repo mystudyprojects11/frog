@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.core.config import settings
 from app.routers import auth, chats, favorites, listings, reviews, species
 from app.utils.s3 import ensure_bucket
 
@@ -13,11 +14,16 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="Жабка API", version="1.0.0", lifespan=lifespan)
+app = FastAPI(
+    title="Жабка API",
+    version="1.0.0",
+    lifespan=lifespan,
+    root_path=settings.ROOT_PATH,
+)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=settings.cors_origins_list,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
