@@ -38,5 +38,8 @@ Thumbs.db
 # Docs
 docs/
 
+# Local prod-simulation stack (not for server use)
+local-stack/
+
 # Logs
 *.log
