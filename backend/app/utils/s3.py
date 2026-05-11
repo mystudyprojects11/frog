@@ -24,21 +24,25 @@ def get_s3_client():
 
 def ensure_bucket() -> None:
     client = get_s3_client()
-    existing = [b["Name"] for b in client.list_buckets().get("Buckets", [])]
-    if settings.MINIO_BUCKET not in existing:
+    try:
         client.create_bucket(Bucket=settings.MINIO_BUCKET)
-        client.put_bucket_policy(
-            Bucket=settings.MINIO_BUCKET,
-            Policy=f"""{{
-                "Version": "2012-10-17",
-                "Statement": [{{
-                    "Effect": "Allow",
-                    "Principal": {{"AWS": ["*"]}},
-                    "Action": ["s3:GetObject"],
-                    "Resource": ["arn:aws:s3:::{settings.MINIO_BUCKET}/*"]
-                }}]
-            }}""",
-        )
+    except (
+        client.exceptions.BucketAlreadyOwnedByYou,
+        client.exceptions.BucketAlreadyExists,
+    ):
+        pass
+    client.put_bucket_policy(
+        Bucket=settings.MINIO_BUCKET,
+        Policy=f"""{{
+            "Version": "2012-10-17",
+            "Statement": [{{
+                "Effect": "Allow",
+                "Principal": {{"AWS": ["*"]}},
+                "Action": ["s3:GetObject"],
+                "Resource": ["arn:aws:s3:::{settings.MINIO_BUCKET}/*"]
+            }}]
+        }}""",
+    )
 
 
 def upload_file(file_bytes: bytes, content_type: str, folder: str = "listings") -> str:
