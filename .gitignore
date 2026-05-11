@@ -16,6 +16,7 @@ env/
 .env
 .env.*
 !.env.example
+!.env.prod.example
 
 # Alembic
 backend/alembic/versions/*.pyc
@@ -36,6 +37,9 @@ Thumbs.db
 
 # Docs
 docs/
+
+# Local prod-simulation stack (not for server use)
+local-stack/
 
 # Logs
 *.log
