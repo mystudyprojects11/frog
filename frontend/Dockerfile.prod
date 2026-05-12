@@ -14,9 +14,7 @@ RUN npm config set fetch-retries 5 \
 COPY . .
 
 ARG VITE_API_URL
-ARG VITE_MINIO_URL
 ENV VITE_API_URL=$VITE_API_URL
-ENV VITE_MINIO_URL=$VITE_MINIO_URL
 
 RUN npm run build
 
