@@ -2,16 +2,22 @@ import uuid
 from datetime import datetime
 from decimal import Decimal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, computed_field
 
 from app.schemas.species import SpeciesRead
 from app.schemas.user import UserRead
+from app.utils.s3 import public_url
 
 
 class ListingPhotoRead(BaseModel):
     id: uuid.UUID
     s3_key: str
     is_main: bool
+
+    @computed_field
+    @property
+    def url(self) -> str:
+        return public_url(self.s3_key)
 
     model_config = {"from_attributes": True}
 

@@ -14,10 +14,6 @@ env/
 
 # Env files
 .env
-.env.*
-!.env.example
-!.env.prod.example
-
 # Alembic
 backend/alembic/versions/*.pyc
 
