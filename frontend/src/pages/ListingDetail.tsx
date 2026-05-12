@@ -47,9 +47,7 @@ export default function ListingDetail() {
   }
 
   const isOwner = user?.id === listing.seller.id
-  const photoUrl = listing.photos[activePhoto]
-    ? `${import.meta.env.VITE_MINIO_URL}/frog-photos/${listing.photos[activePhoto].s3_key}`
-    : null
+  const photoUrl = listing.photos[activePhoto]?.url ?? null
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -78,7 +76,7 @@ export default function ListingDetail() {
                   }`}
                 >
                   <img
-                    src={`${import.meta.env.VITE_MINIO_URL}/frog-photos/${photo.s3_key}`}
+                    src={photo.url}
                     alt=""
                     className="w-full h-full object-cover"
                   />

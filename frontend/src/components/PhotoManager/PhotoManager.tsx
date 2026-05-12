@@ -1,9 +1,6 @@
 import { useRef, useState } from 'react'
 import { listingsApi, type ListingPhoto } from '../../api/listings'
 
-const MINIO = import.meta.env.VITE_MINIO_URL ?? ''
-const photoUrl = (s3_key: string) => `${MINIO}/frog-photos/${s3_key}`
-
 interface Props {
   listingId: string
   photos: ListingPhoto[]
@@ -60,7 +57,7 @@ export default function PhotoManager({ listingId, photos, onChange }: Props) {
         {photos.map((photo) => (
           <div key={photo.id} className="relative group w-24 h-24 flex-shrink-0">
             <img
-              src={photoUrl(photo.s3_key)}
+              src={photo.url}
               alt=""
               className={`w-full h-full object-cover rounded-xl border-2 transition-colors ${
                 photo.is_main ? 'border-frog-500' : 'border-gray-200'

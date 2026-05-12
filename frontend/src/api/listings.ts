@@ -12,6 +12,7 @@ export interface Species {
 export interface ListingPhoto {
   id: string
   s3_key: string
+  url: string
   is_main: boolean
 }
 
